@@ -1,0 +1,1212 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Header Section -->
+    <div class="mb-8">
+    <!-- Main Header -->
+    <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+        <!-- Left Section - Title and Metrics -->
+        <div class="flex-1">
+            <!-- Title Section -->
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+                <!-- Icon -->
+                <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/25">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                
+                <!-- Title and Description -->
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white leading-tight">
+                        Data Cleaning & Transformation
+                    </h1>
+                    <p class="text-lg text-gray-600 dark:text-gray-400 mt-2 leading-relaxed">
+                        Clean, preprocess, and transform your data for analysis
+                    </p>
+                </div>
+            </div>
+
+            <!-- Data Quality Metrics -->
+            {% if data_quality_report.data_quality_score %}
+            <div class="flex flex-col sm:flex-row gap-4">
+                <!-- Data Quality Score -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow duration-300 flex-1">
+                    <div class="flex items-center gap-4">
+                        <!-- Score Circle -->
+                        <div class="relative">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-r 
+                                {% if data_quality_report.data_quality_score >= 80 %}from-green-400 to-emerald-500 shadow-lg shadow-green-500/25
+                                {% elif data_quality_report.data_quality_score >= 60 %}from-yellow-400 to-amber-500 shadow-lg shadow-yellow-500/25
+                                {% else %}from-red-400 to-orange-500 shadow-lg shadow-red-500/25{% endif %} 
+                                flex items-center justify-center">
+                                <span class="text-white font-bold text-lg">{{ data_quality_report.data_quality_score }}</span>
+                            </div>
+                            <!-- Animated Ring -->
+                            <div class="absolute inset-0 rounded-full border-2 opacity-20 animate-pulse
+                                {% if data_quality_report.data_quality_score >= 80 %}border-green-400
+                                {% elif data_quality_report.data_quality_score >= 60 %}border-yellow-400
+                                {% else %}border-red-400{% endif %}">
+                            </div>
+                        </div>
+                        
+                        <!-- Score Details -->
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                                Data Quality Score
+                            </p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white mt-1">
+                                {% if data_quality_report.data_quality_score >= 80 %}Excellent
+                                {% elif data_quality_report.data_quality_score >= 60 %}Good
+                                {% else %}Needs Improvement{% endif %}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                {% if data_quality_report.data_quality_score >= 80 %}Ready for Modeling
+                                {% elif data_quality_report.data_quality_score >= 60 %}Minor Issues
+                                {% else %}Requires Attention{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modeling Readiness -->
+                {% with readiness=data_quality_report.basic_info|is_ready_for_modeling %}
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow duration-300 flex-1">
+                    <div class="flex items-center gap-4">
+                        <!-- Status Icon -->
+                        <div class="relative">
+                            <div class="w-16 h-16 rounded-full {% if readiness.0 %}bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400 shadow-lg shadow-green-500/25{% else %}bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400 shadow-lg shadow-red-500/25{% endif %} flex items-center justify-center">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    {% if readiness.0 %}
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    {% else %}
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    {% endif %}
+                                </svg>
+                            </div>
+                            <!-- Animated Ring -->
+                            <div class="absolute inset-0 rounded-full border-2 opacity-20 animate-pulse
+                                {% if readiness.0 %}border-green-400{% else %}border-red-400{% endif %}">
+                            </div>
+                        </div>
+                        
+                        <!-- Status Details -->
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                                Modeling Ready
+                            </p>
+                            <p class="text-lg font-bold {% if readiness.0 %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %} mt-1">
+                                {% if readiness.0 %}Ready{% else %}Not Ready{% endif %}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1 truncate">
+                                {{ readiness.1 }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endwith %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Section - Action Buttons -->
+        <div class="flex flex-col gap-4">
+            <!-- Top Button Row -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <form method="post" class="flex flex-col sm:flex-row gap-3 flex-1">
+                    {% csrf_token %}
+                    <button type="submit" name="export_data" 
+                           class="px-6 py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 group">
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export Data
+                    </button>
+                    <button type="submit" name="reset_data" 
+                           class="px-6 py-3.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-300 flex items-center justify-center gap-2 group">
+                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Reset
+                    </button>
+                </form>
+            </div>
+
+            <!-- Bottom Button Row -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="{% url 'automated_cleaning' data_source.id %}" 
+                   class="px-6 py-3.5 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 group">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Auto Clean & Transform
+                </a>
+                <a href="{% url 'data_exploration' data_source.id %}" 
+                   class="px-6 py-3.5 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-300 flex items-center justify-center gap-2 group">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Exploration
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
+        <!-- Sidebar - Cleaning Controls -->
+        <!-- Sidebar - Cleaning Controls -->
+<div class="xl:col-span-1 space-y-6">
+    <!-- Quick Actions -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Quick Actions
+        </h2>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Remove Duplicates</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="remove_duplicates" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Handle Outliers</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="handle_outliers" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Standardize Text</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="standardize_text" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Column Strategies -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                    </svg>
+                    Column Strategies
+                </h3>
+                <div class="max-h-60 overflow-y-auto space-y-2 pr-2">
+                    {% for column, suggestions in cleaning_suggestions.items %}
+                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-colors duration-200">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ column }}</label>
+                        <select name="cleaning_strategy_{{ column }}" 
+                                class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-all duration-200">
+                            <option value="none" class="text-gray-500 dark:text-gray-400">No action</option>
+                            {% if column in basic_info.numeric_columns %}
+                            <option value="mean" class="text-gray-900 dark:text-white">Fill with Mean</option>
+                            <option value="median" class="text-gray-900 dark:text-white">Fill with Median</option>
+                            <option value="knn" class="text-gray-900 dark:text-white">KNN Imputation</option>
+                            <option value="zero" class="text-gray-900 dark:text-white">Fill with Zero</option>
+                            {% else %}
+                            <option value="mode" class="text-gray-900 dark:text-white">Fill with Mode</option>
+                            <option value="unknown" class="text-gray-900 dark:text-white">Fill with 'Unknown'</option>
+                            {% endif %}
+                            <option value="drop_column" class="text-red-600 dark:text-red-400">Drop Column</option>
+                            <option value="drop_rows" class="text-red-600 dark:text-red-400">Drop Rows</option>
+                            <option value="forward_fill" class="text-gray-900 dark:text-white">Forward Fill</option>
+                            <option value="backward_fill" class="text-gray-900 dark:text-white">Backward Fill</option>
+                        </select>
+                        {% if suggestions %}
+                        <p class="text-xs text-orange-600 dark:text-orange-400 mt-2 flex items-center gap-1">
+                            <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                            {{ suggestions|first }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <button type="submit" name="clean_data" 
+                    class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 group">
+                <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Apply Cleaning
+            </button>
+        </form>
+    </div>
+
+    <!-- Transformation Tools -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Data Transformations
+        </h2>
+        <form method="post" id="transformationForm">
+            {% csrf_token %}
+            <input type="hidden" name="transformations" id="transformationsInput">
+            <div id="transformationControls" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                <!-- Transformations will be added dynamically by JavaScript -->
+            </div>
+            <div class="space-y-3 mt-4">
+                <button type="button" onclick="addTransformation()" 
+                        class="w-full py-2.5 border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:border-green-500 dark:hover:border-green-400 hover:text-green-600 dark:hover:text-green-400 transition-all duration-300 flex items-center justify-center gap-2 group">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add Transformation
+                </button>
+                <button type="submit" name="transform_data" 
+                        class="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 group">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Apply Transformations
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Feature Engineering -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            Feature Engineering
+        </h2>
+        <form method="post" id="featureEngineeringForm">
+            {% csrf_token %}
+            <input type="hidden" name="feature_operations" id="featureOperationsInput">
+            <div id="featureEngineeringControls" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                <!-- Feature operations will be added dynamically -->
+            </div>
+            <div class="space-y-3 mt-4">
+                <button type="button" onclick="addFeatureOperation()" 
+                        class="w-full py-2.5 border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-xl hover:border-purple-500 dark:hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-300 flex items-center justify-center gap-2 group">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add Feature Operation
+                </button>
+                <button type="submit" name="engineer_features" 
+                        class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center gap-2 group">
+                    <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Feature Engineering
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Cleaning Report -->
+    {% if cleaning_report.cleaning_steps %}
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-all duration-300">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Cleaning Report
+        </h2>
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                    <div class="font-bold text-lg text-blue-600 dark:text-blue-400">{{ cleaning_report.rows_removed }}</div>
+                    <div class="text-xs text-blue-700 dark:text-blue-300 mt-1">Rows Removed</div>
+                </div>
+                <div class="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                    <div class="font-bold text-lg text-green-600 dark:text-green-400">{{ cleaning_report.final_rows }}</div>
+                    <div class="text-xs text-green-700 dark:text-green-300 mt-1">Final Rows</div>
+                </div>
+            </div>
+            <div class="space-y-2 max-h-40 overflow-y-auto pr-2">
+                {% for step in cleaning_report.cleaning_steps %}
+                <div class="flex items-start gap-2 text-sm text-green-600 dark:text-green-400 p-2 bg-green-50 dark:bg-green-900/10 rounded-lg">
+                    <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span class="leading-relaxed">{{ step }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+        <!-- Main Content -->
+        <div class="xl:col-span-3 space-y-8">
+            <!-- Data Quality Report -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-gradient-to-r from-red-50 to-orange-100 dark:from-red-900/20 dark:to-orange-800/20 border-b border-red-200 dark:border-red-800">
+                    <h2 class="text-xl font-semibold text-red-900 dark:text-red-100 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        Data Quality Report
+                    </h2>
+                </div>
+                <div class="p-6">
+                    {% if data_quality_report and data_quality_report.basic_info %}
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
+                            <div class="text-2xl font-bold text-red-600 dark:text-red-400">
+                                {{ data_quality_report.basic_info.missing_values|sum_values }}
+                            </div>
+                            <div class="text-sm text-red-700 dark:text-red-300">Missing Values</div>
+                        </div>
+                        <div class="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800">
+                            <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                                {{ data_quality_report.basic_info.duplicate_rows }}
+                            </div>
+                            <div class="text-sm text-orange-700 dark:text-orange-300">Duplicate Rows</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                            <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                {{ data_quality_report.basic_info.numeric_columns|length }}
+                            </div>
+                            <div class="text-sm text-blue-700 dark:text-blue-300">Numeric Columns</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">
+                                {{ data_quality_report.data_quality_score|default:"0" }}
+                            </div>
+                            <div class="text-sm text-green-700 dark:text-green-300">Quality Score</div>
+                        </div>
+                    </div>
+
+                    <!-- Column-wise Analysis -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-max">
+                            <thead>
+                                <tr class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Column</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Data Type</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Missing %</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Unique Values</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Quality Score</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Suggestions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
+                                {% for column, analysis in data_quality_report.column_analysis.items %}
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-200">
+                                    <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{{ column }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                                        <span class="px-2 py-1 text-xs rounded-full 
+                                            {% if analysis.dtype == 'object' %}bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300
+                                            {% elif 'datetime' in analysis.dtype %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300
+                                            {% else %}bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300{% endif %}">
+                                            {{ analysis.dtype }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-16 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                                <div class="{% if analysis.missing_percentage > 50 %}bg-red-500{% elif analysis.missing_percentage > 10 %}bg-orange-500{% else %}bg-green-500{% endif %} h-2 rounded-full" 
+                                                     style="width: {{ analysis.missing_percentage }}%"></div>
+                                            </div>
+                                            <span>{{ analysis.missing_percentage }}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ analysis.unique_values }}</td>
+                                    <td class="px-4 py-3 text-sm">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium
+                                            {% if analysis.quality_score >= 80 %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300
+                                            {% elif analysis.quality_score >= 60 %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300
+                                            {% else %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300{% endif %}">
+                                            {{ analysis.quality_score }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                                        {% if cleaning_suggestions|get_item:column %}
+                                        <div class="text-xs text-orange-600 dark:text-orange-400">
+                                            {{ cleaning_suggestions|get_item:column|first }}
+                                        </div>
+                                        {% else %}
+                                        <span class="text-green-600 dark:text-green-400">✓ Good</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        No data quality report available. Please load data first.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Applied Transformations -->
+            {% if transformations_applied %}
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-800/20 border-b border-green-200 dark:border-green-800">
+                    <h2 class="text-xl font-semibold text-green-900 dark:text-green-100 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        Applied Transformations
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-2">
+                        {% for transformation in transformations_applied %}
+                        <div class="flex items-start space-x-2 text-sm text-green-600 dark:text-green-400">
+                            <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>{{ transformation }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Data Preview -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                            <svg class="w-5 h-5 text-gray-600 dark:text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Data Preview ({{ basic_info.shape.0 }} rows × {{ basic_info.shape.1 }} columns)
+                        </h2>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                            Memory: {{ basic_info.memory_usage|filesizeformat }}
+                        </span>
+                    </div>
+                </div>
+                <div class="p-6">
+                    {% if sample_data %}
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-600 max-h-96">
+                        <table class="w-full">
+                            <thead class="sticky top-0 bg-gray-50 dark:bg-gray-700/50">
+                                <tr class="border-b border-gray-200 dark:border-gray-600">
+                                    {% for column in basic_info.columns %}
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                                        {{ column }}
+                                        <div class="text-xs font-normal text-gray-500 dark:text-gray-400 mt-1">
+                                            {{ data_quality_report.column_analysis|get_item:column|get_item:'dtype' }}
+                                        </div>
+                                    </th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
+                                {% for row in sample_data %}
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-200">
+                                    {% for key, value in row.items %}
+                                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap max-w-xs truncate" title="{{ value }}">
+                                        {{ value|default:"-"|truncatechars:50 }}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 dark:text-gray-400">No data available for preview.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // JavaScript for dynamic transformation and feature engineering controls
+let transformationCount = 0;
+let featureOperationCount = 0;
+
+// Transformation Functions
+function addTransformation() {
+    transformationCount++;
+    const controls = document.getElementById('transformationControls');
+    
+    const transformationDiv = document.createElement('div');
+    transformationDiv.className = 'p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-300';
+    transformationDiv.innerHTML = `
+        <div class="space-y-3">
+            <div class="grid grid-cols-1 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                        </svg>
+                        Column
+                    </label>
+                    <select name="transformation_column_${transformationCount}" 
+                            class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-all duration-200">
+                        <option value="" class="text-gray-500 dark:text-gray-400">Select column</option>
+                        {% for column in basic_info.columns %}
+                        <option value="{{ column }}" class="text-gray-900 dark:text-white">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Operation
+                    </label>
+                    <select name="transformation_operation_${transformationCount}" 
+                            class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:focus:ring-green-400 dark:focus:border-green-400 transition-all duration-200"
+                            onchange="showTransformationParameters(${transformationCount})">
+                        <option value="" class="text-gray-500 dark:text-gray-400">Select operation</option>
+                        <option value="normalize" class="text-gray-900 dark:text-white">Normalize (StandardScaler)</option>
+                        <option value="minmax_scale" class="text-gray-900 dark:text-white">Min-Max Scale</option>
+                        <option value="robust_scale" class="text-gray-900 dark:text-white">Robust Scale</option>
+                        <option value="log_transform" class="text-gray-900 dark:text-white">Log Transform</option>
+                        <option value="square_root" class="text-gray-900 dark:text-white">Square Root</option>
+                        <option value="box_cox" class="text-gray-900 dark:text-white">Box-Cox Transform</option>
+                        <option value="encode_categorical" class="text-gray-900 dark:text-white">Label Encode</option>
+                        <option value="one_hot_encode" class="text-gray-900 dark:text-white">One-Hot Encode</option>
+                        <option value="binning" class="text-gray-900 dark:text-white">Binning</option>
+                        <option value="datetime_extract" class="text-gray-900 dark:text-white">Extract Date Features</option>
+                        <option value="text_clean" class="text-gray-900 dark:text-white">Clean Text</option>
+                        <option value="remove_column" class="text-red-600 dark:text-red-400">Remove Column</option>
+                        <option value="rename_column" class="text-gray-900 dark:text-white">Rename Column</option>
+                        <option value="clip_values" class="text-gray-900 dark:text-white">Clip Values</option>
+                    </select>
+                </div>
+            </div>
+            <div id="parameters_${transformationCount}" class="hidden">
+                <!-- Parameters will be shown here based on operation -->
+            </div>
+            <div class="flex justify-end">
+                <button type="button" onclick="removeTransformation(this)" 
+                        class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-all duration-200 flex items-center gap-1 group transform hover:scale-105">
+                    <svg class="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Remove
+                </button>
+            </div>
+        </div>
+    `;
+    
+    controls.appendChild(transformationDiv);
+    // Scroll to the new transformation
+    transformationDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function removeTransformation(button) {
+    const transformationDiv = button.closest('.p-4');
+    transformationDiv.style.opacity = '0';
+    transformationDiv.style.transform = 'translateX(-20px)';
+    setTimeout(() => {
+        transformationDiv.remove();
+    }, 300);
+}
+
+function showTransformationParameters(transformationId) {
+    const operationSelect = document.querySelector(`select[name="transformation_operation_${transformationId}"]`);
+    const parametersDiv = document.getElementById(`parameters_${transformationId}`);
+    const operation = operationSelect.value;
+    
+    parametersDiv.innerHTML = '';
+    parametersDiv.classList.add('hidden');
+    
+    if (operation === 'binning') {
+        parametersDiv.innerHTML = `
+            <div class="p-3 bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500 shadow-sm">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                    Binning Parameters
+                </label>
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Number of Bins</label>
+                        <input type="number" name="transformation_bins_${transformationId}" value="5" min="2" max="20" 
+                               class="w-full text-sm bg-white dark:bg-gray-500 border border-gray-300 dark:border-gray-400 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                    </div>
+                </div>
+            </div>
+        `;
+        parametersDiv.classList.remove('hidden');
+    } else if (operation === 'rename_column') {
+        parametersDiv.innerHTML = `
+            <div class="p-3 bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500 shadow-sm">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Rename Parameters
+                </label>
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">New Column Name</label>
+                        <input type="text" name="transformation_new_name_${transformationId}" placeholder="Enter new column name" 
+                               class="w-full text-sm bg-white dark:bg-gray-500 border border-gray-300 dark:border-gray-400 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200">
+                    </div>
+                </div>
+            </div>
+        `;
+        parametersDiv.classList.remove('hidden');
+    } else if (operation === 'clip_values') {
+        parametersDiv.innerHTML = `
+            <div class="p-3 bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500 shadow-sm">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    Clipping Parameters
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Minimum Value</label>
+                        <input type="number" name="transformation_min_${transformationId}" placeholder="Min value" 
+                               class="w-full text-sm bg-white dark:bg-gray-500 border border-gray-300 dark:border-gray-400 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Maximum Value</label>
+                        <input type="number" name="transformation_max_${transformationId}" placeholder="Max value" 
+                               class="w-full text-sm bg-white dark:bg-gray-500 border border-gray-300 dark:border-gray-400 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200">
+                    </div>
+                </div>
+            </div>
+        `;
+        parametersDiv.classList.remove('hidden');
+    } else if (operation === 'feature_scaling') {
+        parametersDiv.innerHTML = `
+            <div class="p-3 bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500 shadow-sm">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    </svg>
+                    Scaling Parameters
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Target Minimum</label>
+                        <input type="number" name="transformation_min_${transformationId}" value="0" 
+                               class="w-full text-sm bg-white dark:bg-gray-500 border border-gray-300 dark:border-gray-400 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Target Maximum</label>
+                        <input type="number" name="transformation_max_${transformationId}" value="1" 
+                               class="w-full text-sm bg-white dark:bg-gray-500 border border-gray-300 dark:border-gray-400 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                    </div>
+                </div>
+            </div>
+        `;
+        parametersDiv.classList.remove('hidden');
+    }
+}
+
+// Feature Engineering Functions
+function addFeatureOperation() {
+    featureOperationCount++;
+    const controls = document.getElementById('featureEngineeringControls');
+    
+    const operationDiv = document.createElement('div');
+    operationDiv.className = 'p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-300';
+    operationDiv.innerHTML = `
+        <div class="space-y-3">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                    Operation Type
+                </label>
+                <select name="feature_operation_type_${featureOperationCount}" 
+                        class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:focus:ring-purple-400 dark:focus:border-purple-400 transition-all duration-200"
+                        onchange="showFeatureParameters(${featureOperationCount})">
+                    <option value="" class="text-gray-500 dark:text-gray-400">Select type</option>
+                    <option value="interaction" class="text-gray-900 dark:text-white">Interaction</option>
+                    <option value="polynomial" class="text-gray-900 dark:text-white">Polynomial</option>
+                    <option value="aggregation" class="text-gray-900 dark:text-white">Aggregation</option>
+                    <option value="datetime_feature" class="text-gray-900 dark:text-white">Datetime Features</option>
+                    <option value="ratio" class="text-gray-900 dark:text-white">Ratio</option>
+                    <option value="bin_count" class="text-gray-900 dark:text-white">Bin Count</option>
+                </select>
+            </div>
+            <div id="feature_params_${featureOperationCount}" class="space-y-3">
+                <!-- Feature parameters will be shown here -->
+            </div>
+            <div class="flex justify-end">
+                <button type="button" onclick="removeFeatureOperation(this)" 
+                        class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-all duration-200 flex items-center gap-1 group transform hover:scale-105">
+                    <svg class="w-4 h-4 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Remove
+                </button>
+            </div>
+        </div>
+    `;
+    
+    controls.appendChild(operationDiv);
+    // Scroll to the new feature operation
+    operationDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function removeFeatureOperation(button) {
+    const operationDiv = button.closest('.p-4');
+    operationDiv.style.opacity = '0';
+    operationDiv.style.transform = 'translateX(-20px)';
+    setTimeout(() => {
+        operationDiv.remove();
+    }, 300);
+}
+
+function showFeatureParameters(operationId) {
+    const typeSelect = document.querySelector(`select[name="feature_operation_type_${operationId}"]`);
+    const paramsDiv = document.getElementById(`feature_params_${operationId}`);
+    const operationType = typeSelect.value;
+    
+    paramsDiv.innerHTML = '';
+    
+    if (operationType === 'interaction') {
+        paramsDiv.innerHTML = `
+            <div class="space-y-3">
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Column</label>
+                        <select name="feature_column1_${operationId}" 
+                                class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                            <option value="" class="text-gray-500 dark:text-gray-400">Select column</option>
+                            {% for column in basic_info.numeric_columns %}
+                            <option value="{{ column }}" class="text-gray-900 dark:text-white">{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Second Column</label>
+                        <select name="feature_column2_${operationId}" 
+                                class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                            <option value="" class="text-gray-500 dark:text-gray-400">Select column</option>
+                            {% for column in basic_info.numeric_columns %}
+                            <option value="{{ column }}" class="text-gray-900 dark:text-white">{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (operationType === 'polynomial') {
+        paramsDiv.innerHTML = `
+            <div class="space-y-3">
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Column</label>
+                        <select name="feature_column_${operationId}" 
+                                class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                            <option value="" class="text-gray-500 dark:text-gray-400">Select column</option>
+                            {% for column in basic_info.numeric_columns %}
+                            <option value="{{ column }}" class="text-gray-900 dark:text-white">{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Polynomial Degree</label>
+                        <input type="number" name="feature_degree_${operationId}" value="2" min="2" max="5" 
+                               class="w-full text-sm bg-white dark:bg-gray-500 border border-gray-300 dark:border-gray-400 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (operationType === 'aggregation') {
+        paramsDiv.innerHTML = `
+            <div class="space-y-3">
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Group By Column</label>
+                        <select name="feature_group_by_${operationId}" 
+                                class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                            <option value="" class="text-gray-500 dark:text-gray-400">Select column</option>
+                            {% for column in basic_info.columns %}
+                            <option value="{{ column }}" class="text-gray-900 dark:text-white">{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aggregate Column</label>
+                        <select name="feature_aggregate_column_${operationId}" 
+                                class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                            <option value="" class="text-gray-500 dark:text-gray-400">Select column</option>
+                            {% for column in basic_info.numeric_columns %}
+                            <option value="{{ column }}" class="text-gray-900 dark:text-white">{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Aggregation Method</label>
+                        <select name="feature_method_${operationId}" 
+                                class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                            <option value="mean" class="text-gray-900 dark:text-white">Mean</option>
+                            <option value="sum" class="text-gray-900 dark:text-white">Sum</option>
+                            <option value="count" class="text-gray-900 dark:text-white">Count</option>
+                            <option value="max" class="text-gray-900 dark:text-white">Maximum</option>
+                            <option value="min" class="text-gray-900 dark:text-white">Minimum</option>
+                            <option value="std" class="text-gray-900 dark:text-white">Standard Deviation</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (operationType === 'datetime_feature') {
+        paramsDiv.innerHTML = `
+            <div class="space-y-3">
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Datetime Column</label>
+                        <select name="feature_datetime_column_${operationId}" 
+                                class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                            <option value="" class="text-gray-500 dark:text-gray-400">Select datetime column</option>
+                            {% for column in basic_info.columns %}
+                            <option value="{{ column }}" class="text-gray-900 dark:text-white">{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p class="text-xs text-blue-700 dark:text-blue-300">
+                        This will extract: Year, Month, Day, Day of Week, Quarter, Weekend flag, Month start/end flags
+                    </p>
+                </div>
+            </div>
+        `;
+    } else if (operationType === 'ratio') {
+        paramsDiv.innerHTML = `
+            <div class="space-y-3">
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Numerator Column</label>
+                        <select name="feature_numerator_${operationId}" 
+                                class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                            <option value="" class="text-gray-500 dark:text-gray-400">Select column</option>
+                            {% for column in basic_info.numeric_columns %}
+                            <option value="{{ column }}" class="text-gray-900 dark:text-white">{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Denominator Column</label>
+                        <select name="feature_denominator_${operationId}" 
+                                class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                            <option value="" class="text-gray-500 dark:text-gray-400">Select column</option>
+                            {% for column in basic_info.numeric_columns %}
+                            <option value="{{ column }}" class="text-gray-900 dark:text-white">{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                    <p class="text-xs text-orange-700 dark:text-orange-300">
+                        Note: Zero values in denominator will be handled automatically
+                    </p>
+                </div>
+            </div>
+        `;
+    } else if (operationType === 'bin_count') {
+        paramsDiv.innerHTML = `
+            <div class="space-y-3">
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Column to Bin</label>
+                        <select name="feature_column_${operationId}" 
+                                class="w-full text-sm bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                            <option value="" class="text-gray-500 dark:text-gray-400">Select column</option>
+                            {% for column in basic_info.columns %}
+                            <option value="{{ column }}" class="text-gray-900 dark:text-white">{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Form Submission Handlers
+document.addEventListener('DOMContentLoaded', function() {
+    // Transformation Form Handler
+    const transformationForm = document.getElementById('transformationForm');
+    if (transformationForm) {
+        transformationForm.addEventListener('submit', function(e) {
+            const transformations = [];
+            
+            // Collect all transformation elements
+            const transformationElements = document.querySelectorAll('#transformationControls > div');
+            
+            transformationElements.forEach((element, index) => {
+                const transformationId = index + 1;
+                const column = element.querySelector(`select[name="transformation_column_${transformationId}"]`);
+                const operation = element.querySelector(`select[name="transformation_operation_${transformationId}"]`);
+                
+                if (column && column.value && operation && operation.value) {
+                    const transformation = {
+                        column: column.value,
+                        operation: operation.value
+                    };
+                    
+                    // Add parameters based on operation
+                    switch(operation.value) {
+                        case 'binning':
+                            const bins = element.querySelector(`input[name="transformation_bins_${transformationId}"]`);
+                            if (bins) transformation.parameters = { bins: parseInt(bins.value) || 5 };
+                            break;
+                        case 'rename_column':
+                            const newName = element.querySelector(`input[name="transformation_new_name_${transformationId}"]`);
+                            if (newName && newName.value) transformation.parameters = { new_name: newName.value };
+                            break;
+                        case 'clip_values':
+                            const minVal = element.querySelector(`input[name="transformation_min_${transformationId}"]`);
+                            const maxVal = element.querySelector(`input[name="transformation_max_${transformationId}"]`);
+                            transformation.parameters = { 
+                                min: minVal && minVal.value ? parseFloat(minVal.value) : null,
+                                max: maxVal && maxVal.value ? parseFloat(maxVal.value) : null
+                            };
+                            break;
+                        case 'feature_scaling':
+                            const scaleMin = element.querySelector(`input[name="transformation_min_${transformationId}"]`);
+                            const scaleMax = element.querySelector(`input[name="transformation_max_${transformationId}"]`);
+                            transformation.parameters = { 
+                                min: scaleMin && scaleMin.value ? parseFloat(scaleMin.value) : 0,
+                                max: scaleMax && scaleMax.value ? parseFloat(scaleMax.value) : 1
+                            };
+                            break;
+                    }
+                    
+                    transformations.push(transformation);
+                }
+            });
+            
+            document.getElementById('transformationsInput').value = JSON.stringify(transformations);
+            
+            // Show loading state
+            const submitBtn = transformationForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Applying Transformations...
+            `;
+            submitBtn.disabled = true;
+            
+            // Re-enable button after 2 seconds if form doesn't submit
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 2000);
+        });
+    }
+
+    // Feature Engineering Form Handler
+    const featureEngineeringForm = document.getElementById('featureEngineeringForm');
+    if (featureEngineeringForm) {
+        featureEngineeringForm.addEventListener('submit', function(e) {
+            const operations = [];
+            
+            // Collect all feature operation elements
+            const operationElements = document.querySelectorAll('#featureEngineeringControls > div');
+            
+            operationElements.forEach((element, index) => {
+                const operationId = index + 1;
+                const type = element.querySelector(`select[name="feature_operation_type_${operationId}"]`);
+                
+                if (type && type.value) {
+                    const operation = { type: type.value };
+                    
+                    // Add parameters based on operation type
+                    switch(type.value) {
+                        case 'interaction':
+                            const col1 = element.querySelector(`select[name="feature_column1_${operationId}"]`);
+                            const col2 = element.querySelector(`select[name="feature_column2_${operationId}"]`);
+                            if (col1 && col2 && col1.value && col2.value) {
+                                operation.column1 = col1.value;
+                                operation.column2 = col2.value;
+                                operations.push(operation);
+                            }
+                            break;
+                        case 'polynomial':
+                            const column = element.querySelector(`select[name="feature_column_${operationId}"]`);
+                            const degree = element.querySelector(`input[name="feature_degree_${operationId}"]`);
+                            if (column && column.value) {
+                                operation.column = column.value;
+                                operation.degree = degree ? parseInt(degree.value) || 2 : 2;
+                                operations.push(operation);
+                            }
+                            break;
+                        case 'aggregation':
+                            const groupBy = element.querySelector(`select[name="feature_group_by_${operationId}"]`);
+                            const aggColumn = element.querySelector(`select[name="feature_aggregate_column_${operationId}"]`);
+                            const method = element.querySelector(`select[name="feature_method_${operationId}"]`);
+                            if (groupBy && aggColumn && method && groupBy.value && aggColumn.value) {
+                                operation.group_by = groupBy.value;
+                                operation.aggregate_column = aggColumn.value;
+                                operation.method = method.value;
+                                operations.push(operation);
+                            }
+                            break;
+                        case 'datetime_feature':
+                            const datetimeColumn = element.querySelector(`select[name="feature_datetime_column_${operationId}"]`);
+                            if (datetimeColumn && datetimeColumn.value) {
+                                operation.column = datetimeColumn.value;
+                                operations.push(operation);
+                            }
+                            break;
+                        case 'ratio':
+                            const numerator = element.querySelector(`select[name="feature_numerator_${operationId}"]`);
+                            const denominator = element.querySelector(`select[name="feature_denominator_${operationId}"]`);
+                            if (numerator && denominator && numerator.value && denominator.value) {
+                                operation.column1 = numerator.value;
+                                operation.column2 = denominator.value;
+                                operations.push(operation);
+                            }
+                            break;
+                        case 'bin_count':
+                            const binColumn = element.querySelector(`select[name="feature_column_${operationId}"]`);
+                            if (binColumn && binColumn.value) {
+                                operation.column = binColumn.value;
+                                operations.push(operation);
+                            }
+                            break;
+                    }
+                }
+            });
+            
+            document.getElementById('featureOperationsInput').value = JSON.stringify(operations);
+            
+            // Show loading state
+            const submitBtn = featureEngineeringForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Engineering Features...
+            `;
+            submitBtn.disabled = true;
+            
+            // Re-enable button after 2 seconds if form doesn't submit
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 2000);
+        });
+    }
+
+    // Add smooth scrolling to all internal links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Add focus styles for accessibility
+    document.querySelectorAll('select, input, button').forEach(element => {
+        element.addEventListener('focus', function() {
+            this.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50');
+        });
+        element.addEventListener('blur', function() {
+            this.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
+        });
+    });
+});
+
+// Utility function to validate form inputs
+function validateFormInputs() {
+    let isValid = true;
+    
+    // Validate transformation inputs
+    const transformationElements = document.querySelectorAll('#transformationControls > div');
+    transformationElements.forEach((element, index) => {
+        const transformationId = index + 1;
+        const column = element.querySelector(`select[name="transformation_column_${transformationId}"]`);
+        const operation = element.querySelector(`select[name="transformation_operation_${transformationId}"]`);
+        
+        if (!column || !column.value || !operation || !operation.value) {
+            isValid = false;
+            element.classList.add('border-red-500');
+        } else {
+            element.classList.remove('border-red-500');
+        }
+    });
+    
+    return isValid;
+}
+
+// Initialize some sample transformations and features on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Add a welcome tooltip for first-time users
+    const isFirstVisit = !localStorage.getItem('dataCleaningVisited');
+    if (isFirstVisit) {
+        setTimeout(() => {
+            showWelcomeTooltip();
+            localStorage.setItem('dataCleaningVisited', 'true');
+        }, 1000);
+    }
+});
+
+function showWelcomeTooltip() {
+    const tooltip = document.createElement('div');
+    tooltip.className = 'fixed bottom-4 right-4 bg-blue-600 text-white p-4 rounded-lg shadow-xl max-w-sm z-50 animate-bounce';
+    tooltip.innerHTML = `
+        <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+                <p class="font-semibold">Welcome to Data Cleaning!</p>
+                <p class="text-sm mt-1 text-blue-100">Start by adding transformations or using Auto Clean for quick results.</p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="text-blue-200 hover:text-white">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    `;
+    document.body.appendChild(tooltip);
+    
+    // Auto-remove after 8 seconds
+    setTimeout(() => {
+        if (tooltip.parentElement) {
+            tooltip.remove();
+        }
+    }, 8000);
+}
+</script>
+{% endblock %}

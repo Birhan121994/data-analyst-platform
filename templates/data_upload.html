@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto animate-fade-in">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">Upload Dataset</h1>
+        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Import your data files and start uncovering valuable insights with our advanced analytics platform</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden">
+        <!-- Form Header -->
+        <div class="gradient-bg px-8 py-6">
+            <h2 class="text-2xl font-bold text-white">Dataset Information</h2>
+            <p class="text-white/80">Provide details about your dataset</p>
+        </div>
+
+        <div class="p-8">
+            <form method="post" enctype="multipart/form-data" class="space-y-8">
+                {% csrf_token %}
+                
+                <!-- Form Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Dataset Name -->
+                    <div class="space-y-3">
+                        <label for="id_name" class="block text-sm font-semibold text-gray-900 dark:text-white">
+                            Dataset Name *
+                        </label>
+                        <input type="text" name="name" id="id_name" required
+                               class="w-full px-4 py-4 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white transition-all duration-300 placeholder-gray-500 dark:placeholder-gray-400 hover:border-gray-300 dark:hover:border-gray-500"
+                               placeholder="Sales Data 2024">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Give your dataset a descriptive name</p>
+                    </div>
+
+                    <!-- Data Type -->
+                    <div class="space-y-3">
+                        <label for="id_data_type" class="block text-sm font-semibold text-gray-900 dark:text-white">
+                            Data Type *
+                        </label>
+                        <div class="relative">
+                            <select name="data_type" id="id_data_type" required
+                                    class="w-full px-4 py-4 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white transition-all duration-300 appearance-none hover:border-gray-300 dark:hover:border-gray-500 pr-12">
+                                <option value="">Select file type</option>
+                                <option value="csv">CSV File (.csv)</option>
+                                <option value="excel">Excel Spreadsheet (.xlsx, .xls)</option>
+                                <option value="json">JSON Data (.json)</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                                <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Choose your file format</p>
+                    </div>
+                </div>
+
+                <!-- File Upload -->
+                <div class="space-y-3">
+                    <label class="block text-sm font-semibold text-gray-900 dark:text-white">
+                        Data File *
+                    </label>
+                    <div class="relative">
+                        <input type="file" name="file" id="id_file" required
+                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50"
+                               accept=".csv,.xlsx,.xls,.json">
+                        <div id="fileUploadArea" 
+                             class="relative w-full px-8 py-12 bg-gray-50 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl transition-all duration-300 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 group">
+                            <div class="text-center pointer-events-none">
+                                <!-- Upload Icon -->
+                                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                </div>
+                                
+                                <!-- Upload Text -->
+                                <div class="space-y-2">
+                                    <p class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                                        Drop your file here
+                                    </p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                                        or <span class="text-blue-600 dark:text-blue-400 font-medium">browse files</span>
+                                    </p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-4">
+                                        Supports: CSV, Excel, JSON (Max 100MB)
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Selected File Display -->
+                            <div id="selectedFile" class="hidden mt-4 p-4 bg-white dark:bg-gray-600 rounded-lg border border-green-200 dark:border-green-800">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p id="fileName" class="font-medium text-gray-900 dark:text-white text-sm"></p>
+                                            <p id="fileSize" class="text-xs text-gray-500 dark:text-gray-400"></p>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="clearFileSelection()" class="text-gray-400 hover:text-red-500 transition-colors duration-200">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="space-y-3">
+                    <label for="id_description" class="block text-sm font-semibold text-gray-900 dark:text-white">
+                        Description (Optional)
+                    </label>
+                    <textarea name="description" id="id_description" rows="4"
+                              class="w-full px-4 py-4 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white transition-all duration-300 resize-none placeholder-gray-500 dark:placeholder-gray-400 hover:border-gray-300 dark:hover:border-gray-500"
+                              placeholder="Describe your dataset, including any important context, source information, or specific notes for analysis..."></textarea>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Add context to help understand your data better</p>
+                </div>
+
+                <!-- Supported Formats -->
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-6">
+                    <h3 class="font-semibold text-blue-900 dark:text-blue-100 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Supported File Formats
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="flex items-center space-x-3 p-4 bg-white/60 dark:bg-gray-800/60 rounded-xl border border-blue-100 dark:border-blue-800/50">
+                            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <span class="text-blue-600 dark:text-blue-400 font-bold text-sm">CSV</span>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-blue-900 dark:text-blue-100 text-sm truncate">Comma Separated Values</p>
+                                <p class="text-blue-700/80 dark:text-blue-300/80 text-xs">.csv files</p>
+                                <p class="text-blue-600/60 dark:text-blue-400/60 text-xs mt-1">Ideal for tabular data</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 p-4 bg-white/60 dark:bg-gray-800/60 rounded-xl border border-green-100 dark:border-green-800/50">
+                            <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <span class="text-green-600 dark:text-green-400 font-bold text-sm">XLSX</span>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-green-900 dark:text-green-100 text-sm truncate">Excel Spreadsheets</p>
+                                <p class="text-green-700/80 dark:text-green-300/80 text-xs">.xlsx, .xls files</p>
+                                <p class="text-green-600/60 dark:text-green-400/60 text-xs mt-1">Multiple sheets supported</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 p-4 bg-white/60 dark:bg-gray-800/60 rounded-xl border border-purple-100 dark:border-purple-800/50">
+                            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <span class="text-purple-600 dark:text-purple-400 font-bold text-sm">JSON</span>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-purple-900 dark:text-purple-100 text-sm truncate">JSON Data</p>
+                                <p class="text-purple-700/80 dark:text-purple-300/80 text-xs">.json files</p>
+                                <p class="text-purple-600/60 dark:text-purple-400/60 text-xs mt-1">Structured data format</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <a href="{% url 'dashboard' %}" 
+                       class="px-8 py-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg">
+                        Cancel
+                    </a>
+                    <button type="submit" id="submitButton"
+                            class="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        Upload & Process Dataset
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('id_file');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const selectedFileDiv = document.getElementById('selectedFile');
+    const fileNameSpan = document.getElementById('fileName');
+    const fileSizeSpan = document.getElementById('fileSize');
+    const submitButton = document.getElementById('submitButton');
+    const dataTypeSelect = document.getElementById('id_data_type');
+
+    // Enhanced dropdown styling
+    dataTypeSelect.addEventListener('focus', function() {
+        this.parentElement.classList.add('ring-2', 'ring-blue-200', 'dark:ring-blue-800');
+    });
+    
+    dataTypeSelect.addEventListener('blur', function() {
+        this.parentElement.classList.remove('ring-2', 'ring-blue-200', 'dark:ring-blue-800');
+    });
+
+    // File upload functionality
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            const file = this.files[0];
+            updateFileDisplay(file);
+        }
+    });
+
+    // Drag and drop functionality
+    fileUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('border-blue-400', 'dark:border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
+        this.classList.remove('border-gray-300', 'dark:border-gray-600', 'bg-gray-50', 'dark:bg-gray-700');
+    });
+
+    fileUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        if (!this.contains(e.relatedTarget)) {
+            this.classList.remove('border-blue-400', 'dark:border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
+            this.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-gray-50', 'dark:bg-gray-700');
+        }
+    });
+
+    fileUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('border-blue-400', 'dark:border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
+        this.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-gray-50', 'dark:bg-gray-700');
+        
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            updateFileDisplay(e.dataTransfer.files[0]);
+        }
+    });
+
+    function updateFileDisplay(file) {
+        // Update file name and size
+        fileNameSpan.textContent = file.name;
+        fileSizeSpan.textContent = formatFileSize(file.size);
+        
+        // Show selected file display
+        selectedFileDiv.classList.remove('hidden');
+        
+        // Update upload area text
+        const uploadText = fileUploadArea.querySelector('p:nth-of-type(1)');
+        uploadText.textContent = 'File selected';
+        uploadText.classList.add('text-green-600', 'dark:text-green-400');
+        uploadText.classList.remove('text-gray-900', 'dark:text-white', 'group-hover:text-blue-600');
+        
+        // Enable submit button
+        submitButton.disabled = false;
+        
+        // Add success styling to upload area
+        fileUploadArea.classList.add('border-green-400', 'dark:border-green-500', 'bg-green-50', 'dark:bg-green-900/20');
+        fileUploadArea.classList.remove('border-gray-300', 'dark:border-gray-600', 'bg-gray-50', 'dark:bg-gray-700');
+    }
+
+    function clearFileSelection() {
+        fileInput.value = '';
+        selectedFileDiv.classList.add('hidden');
+        
+        // Reset upload area text
+        const uploadText = fileUploadArea.querySelector('p:nth-of-type(1)');
+        uploadText.textContent = 'Drop your file here';
+        uploadText.classList.remove('text-green-600', 'dark:text-green-400');
+        uploadText.classList.add('text-gray-900', 'dark:text-white', 'group-hover:text-blue-600');
+        
+        // Disable submit button
+        submitButton.disabled = true;
+        
+        // Reset upload area styling
+        fileUploadArea.classList.remove('border-green-400', 'dark:border-green-500', 'bg-green-50', 'dark:bg-green-900/20');
+        fileUploadArea.classList.add('border-gray-300', 'dark:border-gray-600', 'bg-gray-50', 'dark:bg-gray-700');
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const name = document.getElementById('id_name').value.trim();
+        const dataType = document.getElementById('id_data_type').value;
+        const file = document.getElementById('id_file').files[0];
+
+        if (!name) {
+            e.preventDefault();
+            showValidationError('id_name', 'Dataset name is required');
+        }
+
+        if (!dataType) {
+            e.preventDefault();
+            showValidationError('id_data_type', 'Please select a data type');
+        }
+
+        if (!file) {
+            e.preventDefault();
+            showValidationError('id_file', 'Please select a file to upload');
+        }
+    });
+
+    function showValidationError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        field.classList.add('border-red-500', 'dark:border-red-500');
+        
+        // Remove existing error message
+        const existingError = field.parentElement.querySelector('.validation-error');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Add error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'validation-error text-red-600 dark:text-red-400 text-xs mt-1 flex items-center space-x-1';
+        errorDiv.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>${message}</span>
+        `;
+        field.parentElement.appendChild(errorDiv);
+        
+        // Remove error styling on input
+        field.addEventListener('input', function() {
+            this.classList.remove('border-red-500', 'dark:border-red-500');
+            const error = this.parentElement.querySelector('.validation-error');
+            if (error) error.remove();
+        }, { once: true });
+    }
+
+    // Initially disable submit button
+    submitButton.disabled = true;
+});
+</script>
+
+<style>
+/* Custom scrollbar for dropdown */
+select::-ms-expand {
+    display: none;
+}
+
+select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    }
+}
+</style>
+{% endblock %}

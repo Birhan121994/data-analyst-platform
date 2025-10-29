@@ -1,0 +1,641 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Header Section -->
+    <div class="mb-8">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+            <div class="flex-1">
+                <div class="flex items-center space-x-4 mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Predictive Modeling</h1>
+                        <p class="text-gray-600 dark:text-gray-400 mt-1">Build machine learning models to predict outcomes and discover patterns</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
+        <!-- Model Configuration Sidebar -->
+        <div class="xl:col-span-1">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 shadow-sm sticky top-8">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                    <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                    </svg>
+                    Model Configuration
+                </h2>
+                
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6">
+                        <h3 class="text-red-800 dark:text-red-200 font-semibold mb-2 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Please correct the following errors:
+                        </h3>
+                        <ul class="text-red-700 dark:text-red-300 text-sm list-disc list-inside space-y-1">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Model Name -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-semibold text-gray-900 dark:text-white">
+                            Model Name *
+                        </label>
+                        <input type="text" name="name" required
+                               class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all duration-300 placeholder-gray-500 dark:placeholder-gray-400"
+                               placeholder="Sales Prediction Model">
+                    </div>
+
+                    <!-- Model Type -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-semibold text-gray-900 dark:text-white">
+                            Model Type *
+                        </label>
+                        <select name="model_type" 
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all duration-300 appearance-none">
+                            <option value="linear_regression">Linear Regression</option>
+                            <option value="logistic_regression">Logistic Regression</option>
+                            <option value="random_forest">Random Forest</option>
+                            <option value="decision_tree">Decision Tree</option>
+                            <option value="svm">Support Vector Machine</option>
+                            <option value="kmeans">K-Means Clustering</option>
+                            <option value="neural_network">Neural Network</option>
+                        </select>
+                    </div>
+
+                    <!-- Target Variable -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-semibold text-gray-900 dark:text-white">
+                            Target Variable *
+                        </label>
+                        <select name="target_column" 
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all duration-300">
+                            <option value="">Select target column</option>
+                            {% for col_info in column_info %}
+                            <option value="{{ col_info.name }}" 
+                                    data-dtype="{{ col_info.dtype }}"
+                                    data-unique="{{ col_info.unique_count }}">
+                                {{ col_info.name }} 
+                                {% if col_info.is_categorical %}(Categorical){% endif %}
+                                {% if col_info.is_numeric and not col_info.is_categorical %}(Numeric){% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">The variable you want to predict</p>
+                    </div>
+
+                    <!-- Feature Selection -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-semibold text-gray-900 dark:text-white">
+                            Features for Training
+                        </label>
+                        <div class="max-h-40 overflow-y-auto space-y-2 border border-gray-200 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-600">
+                            {% for col_info in column_info %}
+                                <label class="flex items-center space-x-2 text-sm feature-checkbox" data-column="{{ col_info.name }}">
+                                    <input type="checkbox" name="feature_columns" value="{{ col_info.name }}" checked
+                                           class="rounded border-indigo-300 dark:border-indigo-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 feature-checkbox-input">
+                                    <span class="text-gray-700 dark:text-gray-300">
+                                        {{ col_info.name }}
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                                            {% if col_info.is_categorical %}(Cat){% endif %}
+                                            {% if col_info.is_numeric and not col_info.is_categorical %}(Num){% endif %}
+                                        </span>
+                                    </span>
+                                </label>
+                            {% empty %}
+                            <p class="text-sm text-gray-500 dark:text-gray-400 text-center py-2">No columns available</p>
+                            {% endfor %}
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Variables used to make predictions (target column is automatically excluded)</p>
+                    </div>
+
+                    <!-- Model Parameters -->
+                    <div id="kmeans-params" class="space-y-3 hidden">
+                        <label class="block text-sm font-semibold text-gray-900 dark:text-white">
+                            Number of Clusters
+                        </label>
+                        <input type="number" name="n_clusters" value="3" min="2" max="10"
+                               class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all duration-300">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Number of clusters for K-Means algorithm</p>
+                    </div>
+
+                    <!-- Test Size -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-semibold text-gray-900 dark:text-white">
+                            Test Set Size (%)
+                        </label>
+                        <input type="number" name="test_size" value="20" min="10" max="50"
+                               class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all duration-300">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Percentage of data to use for testing</p>
+                    </div>
+
+                    <!-- Random State -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-semibold text-gray-900 dark:text-white">
+                            Random State
+                        </label>
+                        <input type="number" name="random_state" value="42"
+                               class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all duration-300">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Seed for reproducible results</p>
+                    </div>
+
+                    <button type="submit" 
+                            class="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        Train Model
+                    </button>
+                </form>
+
+                <!-- Quick Actions -->
+                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600">
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+                    <div class="space-y-2">
+                        <a href="{% url 'data_analysis' data_source.id %}" 
+                           class="flex items-center space-x-3 p-3 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-colors duration-200">
+                            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            <span>Back to Analysis</span>
+                        </a>
+                        <a href="{% url 'data_cleaning' data_source.id %}" 
+                           class="flex items-center space-x-3 p-3 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-colors duration-200">
+                            <svg class="w-4 h-4 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                            <span>Data Cleaning</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="xl:col-span-3">
+            <!-- How It Works Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden mb-8">
+                <div class="px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-100 dark:from-indigo-900/20 dark:to-purple-800/20 border-b border-indigo-200 dark:border-indigo-800">
+                    <h2 class="text-xl font-semibold text-indigo-900 dark:text-indigo-100 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        How Predictive Modeling Works
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Inputs -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                What You Provide
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span class="text-green-600 dark:text-green-400 text-xs font-bold">1</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900 dark:text-white">Target Variable</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">The column you want to predict (e.g., sales amount, customer churn)</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span class="text-green-600 dark:text-green-400 text-xs font-bold">2</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900 dark:text-white">Feature Columns</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Variables used to make predictions (e.g., price, marketing spend)</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span class="text-green-600 dark:text-green-400 text-xs font-bold">3</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900 dark:text-white">Model Type</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Choose the right algorithm for your prediction task</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Outputs -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                What You Get
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span class="text-blue-600 dark:text-blue-400 text-xs font-bold">1</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900 dark:text-white">Trained Model</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">A machine learning model ready to make predictions</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span class="text-blue-600 dark:text-blue-400 text-xs font-bold">2</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900 dark:text-white">Performance Metrics</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Accuracy, precision, recall scores to evaluate model quality</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span class="text-blue-600 dark:text-blue-400 text-xs font-bold">3</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900 dark:text-white">Feature Importance</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Understand which variables most impact your predictions</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Results Section -->
+{% if trained_model and training_results %}
+<div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden mb-8">
+    <div class="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-800/20 border-b border-green-200 dark:border-green-800">
+        <h2 class="text-xl font-semibold text-green-900 dark:text-green-100 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Model Training Results
+        </h2>
+    </div>
+    <div class="p-6">
+        <!-- Model Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                <div class="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {{ trained_model.accuracy|floatformat:3 }}
+                </div>
+                <div class="text-sm text-green-700 dark:text-green-300">
+                    {% if trained_model.accuracy|floatformat:3 %}
+                        {% if training_results.data_info.model_type|is_regression_model %}
+                            R² Score
+                        {% else %}
+                            Accuracy
+                        {% endif %}
+                    {% endif %}
+                </div>          
+            </div>
+            <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {{ training_results.data_info.n_train_samples }}
+                </div>
+                <div class="text-sm text-blue-700 dark:text-blue-300">Training Samples</div>
+            </div>
+            <div class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
+                <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    {{ training_results.data_info.n_test_samples }}
+                </div>
+                <div class="text-sm text-purple-700 dark:text-purple-300">Test Samples</div>
+            </div>
+            <div class="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800">
+                <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                    {{ training_results.data_info.n_features }}
+                </div>
+                <div class="text-sm text-orange-700 dark:text-orange-300">Features</div>
+            </div>
+        </div>
+
+        <!-- Detailed Metrics -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Performance Metrics -->
+            <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-200 dark:border-gray-600">
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Performance Metrics</h3>
+                <div class="space-y-2">
+                    {% for metric, value in training_results.metrics.items %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-indigo-900 dark:text-indigo-100 ml-1 font-medium">
+                            {{ trained_model.model_type|replace_underscores|title }}
+                        </span>
+                        <span class="font-semibold text-gray-900 dark:text-white">{{ value|floatformat:4 }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Feature Importance -->
+            {% if training_results.feature_importance %}
+            <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-200 dark:border-gray-600">
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Feature Importance</h3>
+                <div class="space-y-2 max-h-40 overflow-y-auto">
+                    {% for feature, importance in training_results.feature_importance.items %}
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-indigo-500 rounded-full"></div>
+                        <span class="text-sm text-gray-600 dark:text-gray-400 flex-1">{{ feature }}</span>
+                        <span class="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                            {{ importance|floatformat:4 }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Model Details -->
+        <div class="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800">
+            <h3 class="font-semibold text-indigo-900 dark:text-indigo-100 mb-2">Model Information</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                    <span class="text-indigo-700 dark:text-indigo-300">Type:</span>
+                    <span class="text-indigo-900 dark:text-indigo-100 ml-1 font-medium">
+                        {{ trained_model.model_type|format_model_type }}
+                    </span>
+                </div>
+                <div>
+                    <span class="text-indigo-700 dark:text-indigo-300">Target:</span>
+                    <span class="text-indigo-900 dark:text-indigo-100 ml-1 font-medium">
+                        {{ training_results.data_info.target_column }}
+                    </span>
+                </div>
+                <div>
+                    <span class="text-indigo-700 dark:text-indigo-300">Training Time:</span>
+                    <span class="text-indigo-900 dark:text-indigo-100 ml-1 font-medium">
+                        {{ trained_model.parameters.training_time_seconds|floatformat:2 }}s
+                    </span>
+                </div>
+                <div>
+                    <span class="text-indigo-700 dark:text-indigo-300">Created:</span>
+                    <span class="text-indigo-900 dark:text-indigo-100 ml-1 font-medium">
+                        {{ trained_model.created_at|date:"M d, Y H:i" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+            <!-- Use Cases Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden mb-8">
+                <div class="px-6 py-4 bg-gradient-to-r from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-800/20 border-b border-purple-200 dark:border-purple-800">
+                    <h2 class="text-xl font-semibold text-purple-900 dark:text-purple-100 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        Common Use Cases
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                            <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mb-3">
+                                <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Sales Forecasting</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Predict future sales based on historical data and market trends</p>
+                        </div>
+
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                            <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-3">
+                                <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Customer Churn</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Identify customers likely to leave and take proactive measures</p>
+                        </div>
+
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-3">
+                                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Risk Assessment</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Evaluate risks in lending, insurance, or investment decisions</p>
+                        </div>
+
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                            <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-3">
+                                <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Price Optimization</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Determine optimal pricing based on market conditions and demand</p>
+                        </div>
+
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                            <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center mb-3">
+                                <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Inventory Management</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Predict stock requirements and optimize inventory levels</p>
+                        </div>
+
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                            <div class="w-10 h-10 bg-pink-100 dark:bg-pink-900/30 rounded-lg flex items-center justify-center mb-3">
+                                <svg class="w-5 h-5 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Trend Analysis</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Identify patterns and trends in customer behavior or market data</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+// Enhanced form interactions
+document.addEventListener('DOMContentLoaded', function() {
+    const modelTypeSelect = document.querySelector('select[name="model_type"]');
+    const targetSelect = document.querySelector('select[name="target_column"]');
+    const featureCheckboxes = document.querySelectorAll('input[name="feature_columns"]');
+    const kmeansParams = document.getElementById('kmeans-params');
+    
+    // Add focus effects
+    const formElements = document.querySelectorAll('input, select, textarea');
+    formElements.forEach(el => {
+        el.addEventListener('focus', function() {
+            this.parentElement.classList.add('ring-2', 'ring-indigo-200', 'dark:ring-indigo-800');
+        });
+        el.addEventListener('blur', function() {
+            this.parentElement.classList.remove('ring-2', 'ring-indigo-200', 'dark:ring-indigo-800');
+        });
+    });
+
+    function updateFeatureSelection() {
+        const selectedTarget = targetSelect.value;
+        
+        featureCheckboxes.forEach(checkbox => {
+            const label = checkbox.closest('label');
+            if (checkbox.value === selectedTarget) {
+                checkbox.checked = false;
+                checkbox.disabled = true;
+                label.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                checkbox.disabled = false;
+                label.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+    }
+
+    function updateModelTypeGuidance() {
+        const selectedTarget = targetSelect.value;
+        const selectedModel = modelTypeSelect.value;
+        
+        if (!selectedTarget) return;
+        
+        // Find the selected target's data
+        const targetOption = targetSelect.querySelector(`option[value="${selectedTarget}"]`);
+        const isCategorical = targetOption ? targetOption.getAttribute('data-dtype') === 'object' : false;
+        const uniqueCount = targetOption ? parseInt(targetOption.getAttribute('data-unique')) : 0;
+        
+        // Show/hide K-Means parameters
+        if (selectedModel === 'kmeans') {
+            kmeansParams.classList.remove('hidden');
+        } else {
+            kmeansParams.classList.add('hidden');
+        }
+        
+        // Show guidance based on target and model type
+        let guidance = '';
+        
+        if (isCategorical || uniqueCount < 10) {
+            // Classification problem
+            if (selectedModel === 'linear_regression') {
+                guidance = '⚠️ You selected a categorical target with Linear Regression. Consider using Logistic Regression, Random Forest, or Decision Tree for better results.';
+            } else if (['logistic_regression', 'random_forest', 'decision_tree', 'svm', 'neural_network'].includes(selectedModel)) {
+                guidance = '✅ Good choice! This model works well for classification problems.';
+            }
+        } else {
+            // Regression problem
+            if (selectedModel === 'logistic_regression') {
+                guidance = '⚠️ You selected a continuous target with Logistic Regression. Consider using Linear Regression, Random Forest, or Decision Tree for better results.';
+            } else if (['linear_regression', 'random_forest', 'decision_tree', 'svm', 'neural_network'].includes(selectedModel)) {
+                guidance = '✅ Good choice! This model works well for regression problems.';
+            }
+        }
+        
+        // Show guidance message
+        let guidanceElement = document.getElementById('model-guidance');
+        if (!guidanceElement) {
+            guidanceElement = document.createElement('div');
+            guidanceElement.id = 'model-guidance';
+            guidanceElement.className = 'mt-2 p-3 rounded-lg text-sm';
+            modelTypeSelect.parentElement.appendChild(guidanceElement);
+        }
+        
+        if (guidance) {
+            guidanceElement.innerHTML = guidance;
+            if (guidance.includes('⚠️')) {
+                guidanceElement.className = 'mt-2 p-3 rounded-lg text-sm bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800';
+            } else {
+                guidanceElement.className = 'mt-2 p-3 rounded-lg text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800';
+            }
+        } else {
+            guidanceElement.innerHTML = '';
+        }
+    }
+
+    // Run on page load and whenever target or model type changes
+    targetSelect.addEventListener('change', function() {
+        updateFeatureSelection();
+        updateModelTypeGuidance();
+    });
+    
+    modelTypeSelect.addEventListener('change', function() {
+        updateModelTypeGuidance();
+    });
+    
+    // Initialize
+    updateFeatureSelection();
+    updateModelTypeGuidance();
+    
+    // Also validate before form submission
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const selectedTarget = targetSelect.value;
+        const selectedFeatures = Array.from(featureCheckboxes)
+            .filter(cb => cb.checked && !cb.disabled)
+            .map(cb => cb.value);
+        
+        if (!selectedTarget) {
+            e.preventDefault();
+            alert('Error: Please select a target column.');
+            return false;
+        }
+        
+        if (selectedFeatures.length === 0) {
+            e.preventDefault();
+            alert('Error: Please select at least one feature column.');
+            return false;
+        }
+        
+        if (selectedFeatures.includes(selectedTarget)) {
+            e.preventDefault();
+            alert('Error: The target column cannot be selected as a feature. Please uncheck it from the feature selection.');
+            return false;
+        }
+    });
+
+    // Model type description
+    const modelDescriptions = {
+        'linear_regression': 'Predict continuous values (e.g., sales amount, temperature)',
+        'logistic_regression': 'Predict categorical outcomes (e.g., yes/no, win/lose)',
+        'random_forest': 'Powerful ensemble method for both regression and classification',
+        'decision_tree': 'Simple tree-based model easy to interpret',
+        'svm': 'Effective for complex classification boundaries',
+        'kmeans': 'Unsupervised learning for grouping similar data points',
+        'neural_network': 'Deep learning for complex pattern recognition'
+    };
+
+    modelTypeSelect.addEventListener('change', function() {
+        const description = modelDescriptions[this.value];
+        // You could show this description in a tooltip or info box
+        console.log('Selected model:', description);
+    });
+});
+</script>
+{% endblock %}

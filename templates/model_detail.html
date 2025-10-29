@@ -1,0 +1,758 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Header Section -->
+    <div class="mb-8">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+            <div class="flex-1">
+                <div class="flex items-center space-x-4 mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ model.name }}</h1>
+                        <p class="text-gray-600 dark:text-gray-400 mt-1">{{ model.get_model_type_display }} • {{ model.data_source.name }}</p>
+                    </div>
+                </div>
+                {% if model.description %}
+                <p class="text-gray-600 dark:text-gray-400">{{ model.description }}</p>
+                {% endif %}
+            </div>
+            <div class="flex items-center space-x-3">
+                {% if model.status == 'trained' %}
+                <form method="post" action="{% url 'deploy_model' model.id %}">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"></path>
+                        </svg>
+                        Deploy Model
+                    </button>
+                </form>
+                {% endif %}
+                {% if model.model_file %}
+                <a href="{% url 'download_model' model.id %}" 
+                   class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Download Model
+                </a>
+                {% endif %}
+                <a href="{% url 'create_model_version' model.id %}" 
+                   class="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    New Version
+                </a>
+                <button onclick="openDeleteModal()"
+                        class="px-6 py-3 bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Badge -->
+    <div class="mb-8">
+        <span class="px-4 py-2 text-sm font-medium rounded-full 
+            {% if model.status == 'trained' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400
+            {% elif model.status == 'deployed' %}bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400
+            {% elif model.status == 'training' %}bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400
+            {% else %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% endif %}">
+            {{ model.get_status_display }}
+        </span>
+        <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            Created {{ model.created_at|timesince }} ago • Version {{ model.version }}
+        </span>
+    </div>
+
+    <!-- Prediction Result Modal -->
+    <div id="predictionResultModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 mx-4 max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Prediction Result</h3>
+                <button onclick="closePredictionModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="predictionResultContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="xl:col-span-2">
+            <!-- Performance Metrics -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden mb-8">
+                <div class="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-800/20 border-b border-green-200 dark:border-green-800">
+                    <h2 class="text-xl font-semibold text-green-900 dark:text-green-100 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        Performance Metrics
+                    </h2>
+                </div>
+                <div class="p-6">
+                    {% if model.metrics %}
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {% for metric, value in model.metrics.items %}
+                        <div class="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                            <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                                {{ value|floatformat:4 }}
+                            </div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                                {{ metric|format_metric_name }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8">
+                        <p class="text-gray-500 dark:text-gray-400">No metrics available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Feature Importance -->
+            {% if model.feature_importance %}
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden mb-8">
+                <div class="px-6 py-4 bg-gradient-to-r from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-800/20 border-b border-blue-200 dark:border-blue-800">
+                    <h2 class="text-xl font-semibold text-blue-900 dark:text-blue-100 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        Feature Importance
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3">
+                        {% for feature, importance in model.get_feature_importance_list %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">{{ feature }}</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-indigo-500 rounded-full" 
+                                         style="width: {{ importance|floatformat:2 }}%"></div>
+                                </div>
+                                <span class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 w-12 text-right">
+                                    {{ importance|floatformat:4 }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Make Prediction -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-gradient-to-r from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-800/20 border-b border-purple-200 dark:border-purple-800">
+                    <h2 class="text-xl font-semibold text-purple-900 dark:text-purple-100 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        Make Prediction
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <form method="post" action="{% url 'make_prediction' model.id %}" id="predictionForm">
+                        {% csrf_token %}
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                                    Input Data (JSON)
+                                </label>
+                                {{ prediction_form.input_data }}
+                                {% if prediction_form.input_data.errors %}
+                                <p class="text-red-600 dark:text-red-400 text-sm mt-1">{{ prediction_form.input_data.errors.0 }}</p>
+                                {% endif %}
+                                <div class="mt-2">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        Example: {"feature1": value1, "feature2": value2}
+                                    </p>
+                                    {% if model.parameters.feature_columns %}
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        Required features: {{ model.parameters.feature_columns|join:", " }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <button type="submit" 
+                                    class="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                                Make Prediction
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="xl:col-span-1">
+            <!-- Model Information -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden mb-6">
+                <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border-b border-gray-200 dark:border-gray-600">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Model Information
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Model Type</span>
+                            <p class="text-sm text-gray-900 dark:text-white">{{ model.get_model_type_display }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Accuracy</span>
+                            <p class="text-sm text-gray-900 dark:text-white">
+                                {% if model.accuracy %}
+                                {{ model.accuracy|floatformat:4 }} ({{ model.get_metric_name }})
+                                {% else %}
+                                Not available
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Training Time</span>
+                            <p class="text-sm text-gray-900 dark:text-white">
+                                {% if model.training_time %}
+                                {{ model.training_time|floatformat:2 }} seconds
+                                {% else %}
+                                Not recorded
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Data Source</span>
+                            <p class="text-sm text-gray-900 dark:text-white">{{ model.data_source.name }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Created</span>
+                            <p class="text-sm text-gray-900 dark:text-white">{{ model.created_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                        {% if model.parameters.feature_columns %}
+                        <div>
+                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Features Used</span>
+                            <p class="text-sm text-gray-900 dark:text-white">{{ model.parameters.feature_columns|length }} features</p>
+                        </div>
+                        {% endif %}
+                        {% if model.model_file %}
+                        <div>
+                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Model File</span>
+                            <p class="text-sm text-gray-900 dark:text-white">
+                                <a href="{% url 'download_model' model.id %}" class="text-indigo-600 dark:text-indigo-400 hover:underline">
+                                    Download (.pkl)
+                                </a>
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Predictions -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 bg-gradient-to-r from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-800/20 border-b border-orange-200 dark:border-orange-800">
+                    <h2 class="text-lg font-semibold text-orange-900 dark:text-orange-100 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        Recent Predictions
+                    </h2>
+                </div>
+                <div class="p-6">
+                    {% if predictions %}
+                    <div class="space-y-3" id="recentPredictionsContainer">
+                        {% for prediction in predictions %}
+                        <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600/50 transition-colors duration-200 recent-prediction-item"
+                             data-prediction-id="{{ prediction.id }}">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ prediction.created_at|timesince }} ago</span>
+                                {% if prediction.confidence %}
+                                <span class="text-xs font-medium px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full">
+                                    {{ prediction.confidence|floatformat:2 }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <p class="text-sm text-gray-900 dark:text-white font-mono truncate">
+                                {% if prediction.prediction.prediction %}
+                                    {{ prediction.prediction.prediction }}
+                                {% else %}
+                                    {{ prediction.prediction|truncatechars:50 }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">No predictions yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 mx-4 max-w-md w-full transform transition-all duration-300 scale-95">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Delete Model</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Are you sure you want to delete "{{ model.name }}"? This action cannot be undone.
+            </p>
+            <div class="flex space-x-3">
+                <button onclick="closeDeleteModal()"
+                        class="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors duration-200 font-medium">
+                    Cancel
+                </button>
+                <form method="post" action="{% url 'delete_model' model.id %}" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full px-4 py-2 bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:-translate-y-0.5">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simple and robust prediction system
+class PredictionSystem {
+    constructor() {
+        this.currentPredictionData = null;
+        this.isModalOpen = false;
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        // Prediction form submission
+        const predictionForm = document.getElementById('predictionForm');
+        if (predictionForm) {
+            predictionForm.addEventListener('submit', (e) => this.handlePredictionSubmit(e));
+        }
+
+        // Recent predictions click events using event delegation
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.recent-prediction-item')) {
+                const item = e.target.closest('.recent-prediction-item');
+                const predictionId = item.getAttribute('data-prediction-id');
+                if (predictionId) {
+                    this.showRecentPrediction(predictionId);
+                }
+            }
+        });
+
+        // Modal close events
+        this.setupModalEvents();
+    }
+
+    setupModalEvents() {
+        // Close prediction modal when clicking outside
+        const predictionModal = document.getElementById('predictionResultModal');
+        if (predictionModal) {
+            predictionModal.addEventListener('click', (e) => {
+                if (e.target.id === 'predictionResultModal') {
+                    this.closePredictionModal();
+                }
+            });
+        }
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closePredictionModal();
+                this.closeDeleteModal();
+            }
+        });
+    }
+
+    async handlePredictionSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalText = submitButton.innerHTML;
+
+        try {
+            // Show loading state
+            submitButton.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Making Prediction...';
+            submitButton.disabled = true;
+
+            // Clear previous errors
+            this.clearErrors();
+
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showPredictionDetails(data.prediction);
+            } else {
+                throw new Error(data.error || 'Prediction failed');
+            }
+
+        } catch (error) {
+            console.error('Prediction error:', error);
+            this.showError('Prediction failed: ' + error.message);
+        } finally {
+            submitButton.innerHTML = originalText;
+            submitButton.disabled = false;
+        }
+    }
+
+    async showRecentPrediction(predictionId) {
+        // Show loading state
+        this.showLoading();
+
+        try {
+            const response = await fetch(`/predictions/${predictionId}/`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showPredictionDetails(data.prediction);
+            } else {
+                throw new Error(data.error || 'Failed to load prediction');
+            }
+
+        } catch (error) {
+            console.error('Error loading prediction:', error);
+            this.showError('Failed to load prediction: ' + error.message);
+            this.closePredictionModal();
+        }
+    }
+
+    showPredictionDetails(predictionData) {
+        this.currentPredictionData = predictionData;
+        const content = document.getElementById('predictionResultContent');
+
+        if (!predictionData || typeof predictionData !== 'object') {
+            content.innerHTML = this.getErrorHTML('No prediction data available');
+            this.openPredictionModal();
+            return;
+        }
+
+        let html = '<div class="space-y-6">';
+
+        // Main prediction result
+        if (predictionData.is_classification) {
+            html += this.getClassificationHTML(predictionData);
+        } else if (predictionData.is_clustering) {
+            html += this.getClusteringHTML(predictionData);
+        } else {
+            html += this.getRegressionHTML(predictionData);
+        }
+
+        // Input features
+        html += this.getInputFeaturesHTML(predictionData);
+
+        // Close button
+        html += `
+            <div class="flex justify-end pt-4">
+                <button onclick="predictionSystem.closePredictionModal()" 
+                        class="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-xl transition-all duration-300">
+                    Close
+                </button>
+            </div>
+        </div>`;
+
+        content.innerHTML = html;
+        this.openPredictionModal();
+    }
+
+    getClassificationHTML(predictionData) {
+        let html = `
+            <div class="text-center p-6 bg-gradient-to-r from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-800/20 rounded-xl border border-green-200 dark:border-green-800">
+                <div class="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">
+                    ${predictionData.prediction || 'N/A'}
+                </div>
+                <div class="text-lg text-green-700 dark:text-green-300">
+                    Predicted Class
+                </div>
+                <div class="mt-4 text-sm text-green-600 dark:text-green-400">
+                    Confidence: <span class="font-bold">${predictionData.confidence ? (predictionData.confidence * 100).toFixed(1) + '%' : 'N/A'}</span>
+                </div>
+            </div>
+        `;
+
+        if (predictionData.sorted_predictions && predictionData.sorted_predictions.length > 0) {
+            html += `
+                <div>
+                    <h4 class="font-semibold text-gray-900 dark:text-white mb-4">Probability Distribution</h4>
+                    <div class="space-y-3">
+            `;
+
+            predictionData.sorted_predictions.forEach((item, index) => {
+                const percentage = item.percentage || 0;
+                html += `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 ${index === 0 ? 'ring-2 ring-green-200 dark:ring-green-800' : ''}">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">${item.class || 'Unknown'}</span>
+                            ${index === 0 ? '<span class="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full">Top</span>' : ''}
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-indigo-500 rounded-full" style="width: ${percentage}%"></div>
+                            </div>
+                            <span class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 w-16 text-right">
+                                ${percentage.toFixed(1)}%
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div></div>';
+        }
+
+        return html;
+    }
+
+    getClusteringHTML(predictionData) {
+        let html = `
+            <div class="text-center p-6 bg-gradient-to-r from-blue-50 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-800/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                <div class="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                    Cluster ${predictionData.cluster_assignment || 'N/A'}
+                </div>
+                <div class="text-lg text-blue-700 dark:text-blue-300">
+                    Assigned Cluster
+                </div>
+            </div>
+        `;
+
+        if (predictionData.distance_to_centers && predictionData.distance_to_centers.length > 0) {
+            html += `
+                <div>
+                    <h4 class="font-semibold text-gray-900 dark:text-white mb-4">Distance to Cluster Centers</h4>
+                    <div class="space-y-3">
+            `;
+
+            predictionData.distance_to_centers.forEach((distance, index) => {
+                const isCurrentCluster = index === predictionData.cluster_assignment;
+                html += `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 ${isCurrentCluster ? 'ring-2 ring-blue-200 dark:ring-blue-800' : ''}">
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">Cluster ${index}</span>
+                        <span class="text-sm font-semibold ${isCurrentCluster ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}">
+                            ${(distance || 0).toFixed(4)}
+                        </span>
+                    </div>
+                `;
+            });
+
+            html += '</div></div>';
+        }
+
+        return html;
+    }
+
+    getRegressionHTML(predictionData) {
+        const predictionValue = typeof predictionData.prediction === 'number' ? 
+            predictionData.prediction.toFixed(4) : (predictionData.prediction || 'N/A');
+
+        return `
+            <div class="text-center p-6 bg-gradient-to-r from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-800/20 rounded-xl border border-purple-200 dark:border-purple-800">
+                <div class="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                    ${predictionValue}
+                </div>
+                <div class="text-lg text-purple-700 dark:text-purple-300">
+                    Predicted Value
+                </div>
+            </div>
+        `;
+    }
+
+    getInputFeaturesHTML(predictionData) {
+        return `
+            <div>
+                <h4 class="font-semibold text-gray-900 dark:text-white mb-4">Input Features</h4>
+                <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <pre class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${JSON.stringify(predictionData.input_features || {}, null, 2)}</pre>
+                </div>
+            </div>
+        `;
+    }
+
+    getErrorHTML(message) {
+        return `
+            <div class="text-center p-6 text-red-600">
+                <p>${message}</p>
+                <button onclick="predictionSystem.closePredictionModal()" 
+                        class="mt-4 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">
+                    Close
+                </button>
+            </div>
+        `;
+    }
+
+    showLoading() {
+        const content = document.getElementById('predictionResultContent');
+        content.innerHTML = `
+            <div class="text-center p-8">
+                <svg class="animate-spin mx-auto h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="mt-4 text-gray-600 dark:text-gray-400">Loading prediction details...</p>
+            </div>
+        `;
+        this.openPredictionModal();
+    }
+
+    showError(message) {
+        this.clearErrors();
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'predictionError';
+        errorDiv.className = 'mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl';
+        errorDiv.innerHTML = `
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-red-600 dark:text-red-400">${message}</span>
+            </div>
+        `;
+        
+        const form = document.getElementById('predictionForm');
+        if (form) {
+            form.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 5000);
+        }
+    }
+
+    clearErrors() {
+        const existingError = document.getElementById('predictionError');
+        if (existingError) {
+            existingError.remove();
+        }
+    }
+
+    openPredictionModal() {
+        const modal = document.getElementById('predictionResultModal');
+        
+        // Reset modal state completely
+        modal.classList.remove('hidden');
+        modal.classList.remove('opacity-0');
+        modal.classList.add('opacity-100');
+        
+        const modalContent = modal.querySelector('div');
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+        
+        this.isModalOpen = true;
+        
+        // Force a reflow to ensure transitions work
+        modal.offsetHeight;
+    }
+
+    closePredictionModal() {
+        const modal = document.getElementById('predictionResultModal');
+        const modalContent = modal.querySelector('div');
+        
+        modal.classList.add('opacity-0');
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            this.isModalOpen = false;
+            this.currentPredictionData = null;
+        }, 200);
+    }
+
+    openDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.add('opacity-100');
+            modal.querySelector('div').classList.remove('scale-95');
+            modal.querySelector('div').classList.add('scale-100');
+        }, 10);
+    }
+
+    closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.add('opacity-0');
+        modal.querySelector('div').classList.remove('scale-100');
+        modal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    }
+}
+
+// Initialize the prediction system when DOM is loaded
+let predictionSystem;
+document.addEventListener('DOMContentLoaded', function() {
+    predictionSystem = new PredictionSystem();
+    
+    // Global functions for HTML onclick attributes
+    window.openDeleteModal = () => predictionSystem.openDeleteModal();
+    window.closeDeleteModal = () => predictionSystem.closeDeleteModal();
+    window.closePredictionModal = () => predictionSystem.closePredictionModal();
+});
+</script>
+{% endblock %}

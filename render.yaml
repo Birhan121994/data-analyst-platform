@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: data-analyst-platform
+    env: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn data_platform.wsgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.10.12"
