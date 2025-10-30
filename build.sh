@@ -2,6 +2,11 @@
 # Exit on error
 set -o errexit
 
+# Install dependencies
+echo "Installing dependencies..."
+pip install --upgrade pip
+pip install -r requirements.txt
+
 # Create necessary directories
 mkdir -p media
 mkdir -p staticfiles
