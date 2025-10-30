@@ -100,6 +100,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Create media directory if it doesn't exist
 os.makedirs(MEDIA_ROOT, exist_ok=True)
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 # Static files
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
